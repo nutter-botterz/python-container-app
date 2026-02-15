@@ -1,0 +1,32 @@
+name: Update Pre-commit Hooks
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"  # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Update hooks
+        run: pre-commit autoupdate
+
+      - name: Create Pull Request
+        run: |
+          git checkout -b pre-commit-auto-update
+          git add .
+          git commit -m "chore: update pre-commit hooks"
+          gh pr create --title "Update Pre-commit Hooks" --body "Updated pre-commit hooks to latest versions."
+        env:
+          GH_TOKEN: ${{ github.token }}

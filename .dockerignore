@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# But keep these
+!container/
+!src/
+!requirements.txt

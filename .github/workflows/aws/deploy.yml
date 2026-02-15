@@ -1,0 +1,77 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: 'ECS Cluster Name'
+        required: true
+        default: 'python-container-cluster'
+      service:
+        description: 'ECS Service Name'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull image from GHCR
+        env:
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/aws-ecr-login@v2
+
+      - name: Retag for ECR
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          docker tag ghcr.io/${{ github.repository }}:${IMAGE_TAG} ${ECR_REGISTRY}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}:${IMAGE_TAG}
+
+      - name: Register task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/task.json
+          container-name: python-container
+          image: ${{ secrets.ECR_REGISTRY }}:${{ github.ref_name }}
+          variables: |
+            AWS_REGION=${{ secrets.AWS_REGION }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ task-def.outputs.task-definition }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          service: ${{ vars.ECS_SERVICE || github.repository }}
+          wait-for-service-stability: true
