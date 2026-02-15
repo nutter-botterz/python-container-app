@@ -1,10 +1,8 @@
 {
   "branches": [
     "main",
-    {
-      "name": "!(dependabot/**)",
-      "prerelease": true
-    }
+    "beta",
+    "alpha"
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
