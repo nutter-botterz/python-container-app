@@ -105,13 +105,14 @@ git push origin beta
 
 ## Release Outputs
 
-- **GitHub Release** — Created automatically with changelog
-- **Docker Image** — Pushed to `ghcr.io/<owner>/<repo>:<tag>`
-  - Production: `ghcr.io/<owner>/<repo>:1.0.0`
-  - Prerelease: `ghcr.io/<owner>/<repo>:1.0.0-beta.1`
+- **GitHub Release** — Created automatically with changelog (title is version only, e.g., `v1.2.0`)
+- **Docker Image** — Pushed to container registry
+  - GHCR: `ghcr.io/<owner>/<repo>:<tag>`
+  - ECR: `<account>.dkr.ecr.<region>.amazonaws.com/<repo>:<tag>`
+  - Prerelease: `pre-<branchname>` (e.g., `pre-beta`)
 
 ## Important Notes
 
 - **Don't specify versions** in commit messages — semantic-release determines the version
 - All conventional commits are collected since the last release
-- The release title is the version only (e.g., `v1.2.0`), not a descriptive name
+- GitHub release title is just the version number (e.g., `v1.2.0`), no description

@@ -31,7 +31,7 @@ docker run -p 5000:5000 python-container
 | `latest` | Latest stable release (main branch) |
 | `1.0` | Major.minor release |
 | `1` | Major release |
-| `branchname` | Prerelease/canary build from branch |
+| `pre-branchname` | Prerelease/canary build from branch |
 
 ## AWS Setup
 
